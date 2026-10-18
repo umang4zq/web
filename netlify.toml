@@ -6,6 +6,9 @@
   NODE_VERSION = "20"
   DATABASE_URL = "file:./dev.db"
 
+[functions]
+  included_files = ["prisma/**"]
+
 [[headers]]
   for = "/*"
   [headers.values]
