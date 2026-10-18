@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
 
-function getDatabaseUrl(): string | undefined {
+function setupDatabase(): string | undefined {
   const envUrl = process.env.DATABASE_URL;
   // If remote database is provided (PostgreSQL, MySQL, Turso), use it directly
   if (envUrl && !envUrl.startsWith("file:")) {
@@ -14,35 +14,41 @@ function getDatabaseUrl(): string | undefined {
     const tmpDbPath = path.join("/tmp", "dev.db");
 
     if (!fs.existsSync(tmpDbPath)) {
-      const sourceDb = path.join(process.cwd(), "prisma", "dev.db");
-      if (fs.existsSync(/*turbopackIgnore: true*/ sourceDb)) {
+      const candidates = [
+        path.join(process.cwd(), "prisma", "dev.db"),
+        path.join(process.cwd(), ".next", "server", "prisma", "dev.db"),
+        path.resolve("./prisma/dev.db"),
+        path.resolve("./dev.db"),
+        "/var/task/prisma/dev.db",
+        "/var/task/.next/server/prisma/dev.db",
+      ];
+
+      for (const candidate of candidates) {
         try {
-          fs.copyFileSync(sourceDb, tmpDbPath);
-        } catch (e) {
-          console.error("Failed to copy database to /tmp from", sourceDb, e);
-        }
-      } else {
-        // Fallback for nested lambda bundlers
-        const fallback = path.resolve("./prisma/dev.db");
-        if (fs.existsSync(/*turbopackIgnore: true*/ fallback)) {
-          try {
-            fs.copyFileSync(fallback, tmpDbPath);
-          } catch (e) {
-            console.error("Failed to copy database from fallback to /tmp:", e);
+          if (fs.existsSync(candidate)) {
+            fs.copyFileSync(candidate, tmpDbPath);
+            break;
           }
-        }
+        } catch (_) {}
       }
     }
 
     if (fs.existsSync(tmpDbPath)) {
-      return `file:${tmpDbPath}`;
+      const resolvedUrl = `file:${tmpDbPath}`;
+      process.env.DATABASE_URL = resolvedUrl;
+      return resolvedUrl;
     }
   }
 
-  return undefined;
+  // Ensure process.env.DATABASE_URL is always set to avoid initialization errors
+  if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = "file:./dev.db";
+  }
+
+  return process.env.DATABASE_URL;
 }
 
-const dbUrl = getDatabaseUrl();
+const dbUrl = setupDatabase();
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;

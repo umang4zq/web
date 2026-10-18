@@ -6,6 +6,15 @@
   NODE_VERSION = "20"
   DATABASE_URL = "file:./dev.db"
 
+[context.production.environment]
+  DATABASE_URL = "file:./dev.db"
+
+[context.deploy-preview.environment]
+  DATABASE_URL = "file:./dev.db"
+
+[context.branch-deploy.environment]
+  DATABASE_URL = "file:./dev.db"
+
 [functions]
   included_files = ["prisma/**"]
 
