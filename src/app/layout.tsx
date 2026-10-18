@@ -9,6 +9,16 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "THE HOUSE OF WEAR | Premium Multi-Brand Men's Fashion",
   description: "Curated destination for the modern man, offering a collection of premium luxury labels defined by quality and timeless aesthetic.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/static/images/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/static/images/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
